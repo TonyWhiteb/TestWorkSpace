@@ -23,8 +23,8 @@ class MyUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 class MyUser(AbstractBaseUser):
-    email = models.EmailField(verbos_name = 'email_add', maxlength = 255, unique = True)
-    password = models.TextField( max_length = 255)
+    email = models.EmailField(verbose_name = 'email_add', max_length = 255, unique = True)
+    password = models.TextField(verbose_name= 'password', max_length = 255)
     is_admin = models.BooleanField(default = False)
     object = MyUserManager()
     
