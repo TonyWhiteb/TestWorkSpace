@@ -1,6 +1,10 @@
-from django.contrib.auth.models import AbstractBaseUser,BaseUserManager,AbstractUser
-from django.db import models
-from django.utils.translation import gettext_lazy as _
+class test(object):
+    def run(self):
+        print ('11111')
 
-class test(AbstractBaseUser):
-    return print(super().password)
+class test_1(test):
+    pass
+
+
+test_1 = test_1()
+test_1.run()    

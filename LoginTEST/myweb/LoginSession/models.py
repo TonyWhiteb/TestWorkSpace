@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractBaseUser,BaseUserManager,Abstract
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.utils import timezone
 
 
 #https://docs.djangoproject.com/en/2.0/topics/auth/customizing/#django.contrib.auth.models.AbstractBaseUser 
@@ -9,8 +10,7 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 # https://github.com/django/django/blob/master/django/contrib/auth/base_user.py
 # base_user model
 
-# https://github.com/django/django/blob/master/django/contrib/auth/models.py#L288
-# AbstractUser model
+
 # https://github.com/django/django/blob/master/django/db/models/fields/__init__.py
 # django.db.models
 
@@ -32,21 +32,49 @@ class MyUserManager(BaseUserManager):
             # Normalizes email addresses by lowercasing the domin portion of the eamil address
             # https://docs.djangoproject.com/en/2.0/topics/auth/customizing/#django.contrib.auth.models.BaseUserManager
         )    
+        user = self.model(username=username, **extra_fields)
+
         user.set_password(password)
+
         user.save(using=self._db)
+
         return user
 
-    def create_superuser(self,email,password):
-        user = self.create_user(
-            email,
-            password = password
-        )    
-        user.is_admin = True
-        user.save(using=self._db)
-        return user
+    def create_user(self, username,  password=None, **extra_fields):
+
+        extra_fields.setdefault('is_staff', False)
+# TODO: setdefualt()
+        extra_fields.setdefault('is_superuser', False)
+
+        return self._create_user(username, password, **extra_fields)
+
+    def create_superuser(self, username,  password, **extra_fields):
+
+        extra_fields.setdefault('is_staff', True)
+
+        extra_fields.setdefault('is_superuser', True)
+
+
+
+        if extra_fields.get('is_staff') is not True:
+
+            raise ValueError('Superuser must have is_staff=True.')
+
+        if extra_fields.get('is_superuser') is not True:
+
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self._create_user(username,  password, **extra_fields)    
+
 class MyUser(AbstractBaseUser,PermissionsMixin):
     # rebuild my own user model, all steps are the same as AbstractUser's
     # Making email address as username
+
+    # https://github.com/django/django/blob/master/django/contrib/auth/models.py#L288
+    # AbstractUser model   
+
+    # https://github.com/django/django/blob/master/django/contrib/auth/base_user.py#L47
+    # AbstractBaseUser
 
     username_validator = UnicodeUsernameValidator()
 
@@ -81,20 +109,21 @@ class MyUser(AbstractBaseUser,PermissionsMixin):
         ),
     )
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+
     is_admin = models.BooleanField(default = False)
     
     object = MyUserManager()
     
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'username'
 
-    def __str__(self):
-        return self.email
+    class Meta:
 
-    def has_perm(self,perm,obj = None):
-        return True
+        verbose_name = _('user')
 
-    def has_module_perms(self,app_label):
-        return True
+        verbose_name_plural = _('users')
+# AbstractBase methods
+
+
     
 
 
